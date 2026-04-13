@@ -30,11 +30,13 @@ const Chat = ({ initialPrompt, preferences }) => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [autoLoadDest, setAutoLoadDest] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
   
   const scrollContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const steps = [
+    { id: 'transcribing', label: 'Transcribing your request...', icon: <Mic size={14} /> },
     { id: 'searching', label: 'Searching destinations...', icon: <Search size={14} /> },
     { id: 'insights', label: 'Gathering travel insights...', icon: <Globe size={14} /> },
     { id: 'designing', label: 'Designing itinerary...', icon: <Brain size={14} /> },
@@ -57,7 +59,7 @@ const Chat = ({ initialPrompt, preferences }) => {
     }
   }, [messages, currentStep, isLoading]);
 
-  const handleSend = async (msg) => {
+  const handleSend = async (msg, forceVoice = false) => {
     const text = msg || input;
     if (!text.trim()) return;
 
@@ -68,26 +70,35 @@ const Chat = ({ initialPrompt, preferences }) => {
     setIsLoading(true);
 
     try {
-      for (let i = 0; i < steps.length; i++) {
+      // Start from index 1 because index 0 is "Transcribing" (voice only)
+      for (let i = 1; i < steps.length; i++) {
         setCurrentStep(i);
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 600));
       }
 
       const data = await chatWithAI(text, preferences, messages);
       
       if (!data || !data.response) throw new Error("Agent failed to respond.");
 
-      const assistantMsg = { role: 'assistant', content: data.response };
+      const assistantMsg = { 
+        role: 'assistant', 
+        content: data.response,
+        image: data.image,
+        pulse: data.pulse,
+        destination: data.destination
+      };
       setMessages(prev => [...prev, assistantMsg]);
       
-      try {
-        const audioData = await tts(data.response.substring(0, 150));
-        if (audioData?.audio) {
-          const audio = new Audio(`data:audio/mp3;base64,${audioData.audio}`);
-          audio.play();
+      if (voiceMode || forceVoice) {
+        try {
+          const audioData = await tts(data.response.substring(0, 300));
+          if (audioData?.audio) {
+            const audio = new Audio(`data:audio/mp3;base64,${audioData.audio}`);
+            audio.play();
+          }
+        } catch (voiceErr) {
+          console.warn("Voice playback failed", voiceErr);
         }
-      } catch (voiceErr) {
-        console.warn("Voice playback failed", voiceErr);
       }
 
     } catch (err) {
@@ -131,17 +142,18 @@ const Chat = ({ initialPrompt, preferences }) => {
         reader.onloadend = async () => {
           const base64Audio = reader.result.split(',')[1];
           setIsLoading(true);
+          setCurrentStep(0); // Show "Transcribing..."
           try {
             const data = await stt(base64Audio);
             if (data.text) {
-              setInput(data.text);
-              handleSend(data.text);
+              setVoiceMode(true);
+              handleSend(data.text, true);
             }
           } catch (err) {
             console.error("STT Error", err);
             setError("Could not transcribe voice.");
-          } finally {
             setIsLoading(false);
+            setCurrentStep(-1);
           }
         };
       };
@@ -202,28 +214,67 @@ const Chat = ({ initialPrompt, preferences }) => {
               }`}>
                 {msg.role === 'assistant' ? (
                   <>
+                    {/* Premium Hero Image */}
+                    {msg.image && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-8 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group"
+                      >
+                        <img src={msg.image} alt="Destination" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-1000" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      </motion.div>
+                    )}
+
+                    {/* Live Pulse Widget (Now outside image so it always shows) */}
+                    {msg.pulse && (
+                      <div className="mb-8 p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 flex items-center gap-6 shadow-xl">
+                        <div className="p-3 bg-white/10 rounded-xl">
+                          <RefreshCcw size={20} className="text-white/60" />
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Live Destination Pulse</p>
+                          <p className="text-sm text-white/90 leading-relaxed">{msg.pulse}</p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="prose-elite">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {msg.content}
                       </ReactMarkdown>
                     </div>
                     
-                    {/* Exquisite Download Button */}
+                    {/* Exquisite Action Buttons */}
                     {msg.content.includes('Day 1') && (
-                      <motion.button
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        onClick={() => handleDownloadPDF(msg.content)}
-                        disabled={isDownloading}
-                        className="mt-8 flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl hover:bg-white hover:text-dark transition-all duration-500 group border border-white/10"
-                      >
-                        {isDownloading ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <FileText size={16} className="group-hover:scale-110 transition-transform" />
-                        )}
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Download Bespoke PDF</span>
-                      </motion.button>
+                      <div className="flex flex-wrap gap-4 mt-8">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleDownloadPDF(msg.content)}
+                          disabled={isDownloading}
+                          className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl hover:bg-white hover:text-dark transition-all duration-500 group border border-white/10"
+                        >
+                          {isDownloading ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <FileText size={16} className="group-hover:scale-110 transition-transform" />
+                          )}
+                          <span className="text-[10px] font-bold uppercase tracking-widest">Download Bespoke PDF</span>
+                        </motion.button>
+
+                        <motion.a
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          href={`https://www.google.com/maps/search/?api=1&query=${preferences.destination || 'Travel'}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-6 py-3 bg-white/5 rounded-xl hover:bg-white/20 transition-all duration-500 group border border-white/10"
+                        >
+                          <Globe size={16} className="group-hover:rotate-12 transition-transform" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">Explore Interactive Map</span>
+                        </motion.a>
+                      </div>
                     )}
                   </>
                 ) : (

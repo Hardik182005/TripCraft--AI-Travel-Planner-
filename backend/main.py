@@ -38,19 +38,53 @@ async def get_trending_destinations():
 @app.post("/chat")
 async def chat_with_agent(req: ChatRequest):
     try:
-        # Search for context - with Fail-Safe
-        search_results = ""
-        try:
-            search_query = f"{req.message} travel tips best places {req.preferences.get('interest', 'culture')}"
-            search_results = search.search(search_query)
-        except Exception as search_err:
-            print(f"Non-critical Search Error: {search_err}")
-            # Continue without search results
+        # Pre-process message (Clean voice artifacts like '[noise] H-hi' -> 'hi')
+        import re
+        # Remove anything in brackets [noise] or parentheses (ubersprechen)
+        clean_msg = re.sub(r'\[.*?\]|\(.*?\)|\*.*?\*', '', req.message).strip()
+        # Remove punctuation like H-hi -> hi
+        clean_msg = re.sub(r'[^\w\s]', '', clean_msg).lower()
         
-        # Generate response via LLM
-        response = llm.generate_itinerary(req.message, req.preferences, search_results, req.history)
+        # Generate response via LLM - Smart Routing
+        is_greeting = any(greet in clean_msg for greet in ['hi', 'hello', 'hey', 'greetings', 'yo']) and len(clean_msg.split()) < 4
         
-        return {"response": response}
+        if is_greeting:
+            response = llm.chat(req.message, req.history) # Use original message for context but handled as chat
+            return {"response": response, "image": None, "pulse": None, "destination": None}
+        else:
+            # Smart Destination Extraction for Pulse & Maps
+            target_dest = req.message
+            # Simple regex to find destination after "to " or "in "
+            dest_match = re.search(r'(?:to|in|at|visit|about|planning)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)', req.message)
+            if dest_match:
+                target_dest = dest_match.group(1)
+            elif len(req.message.split()) < 4:
+                target_dest = clean_msg # Use the single word as destination
+            
+            # Only search for context if it's a real query
+            search_results = ""
+            dest_image = None
+            dest_pulse = None
+            try:
+                # 1. Image Discovery
+                dest_image = search._get_image(target_dest)
+                # 2. Live Pulse (Weather/Currency)
+                dest_pulse = search.get_destination_info(target_dest)
+                
+                search_query = f"{target_dest} travel tips best places {req.preferences.get('interest', 'culture')}"
+                search_results = search.search(search_query)
+                # Inject pulse into search results for LLM context
+                search_results = f"LIVE PULSE FOR {target_dest}: {dest_pulse}\n\n{search_results}"
+            except Exception as search_err:
+                print(f"Non-critical Search Error: {search_err}")
+                
+            response = llm.generate_itinerary(req.message, req.preferences, search_results, req.history)
+            return {
+                "response": response, 
+                "image": dest_image, 
+                "pulse": dest_pulse,
+                "destination": target_dest
+            }
     except Exception as e:
         print(f"Chat API Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -84,9 +118,9 @@ async def download_itinerary(req: dict):
     
     # Title
     pdf.set_font("Arial", 'B', 20)
-    pdf.cell(100, 15, "TripCraft AI: Bespoke Journey", 0, 1, 'L')
+    pdf.cell(100, 15, "TripCraft AI: Bespoke Journey".encode('latin-1', 'ignore').decode('latin-1'), 0, 1, 'L')
     pdf.set_font("Arial", 'I', 10)
-    pdf.cell(100, 10, "Curated by Atlas AI Assistant", 0, 1, 'L')
+    pdf.cell(100, 10, "Curated by Atlas AI Assistant".encode('latin-1', 'ignore').decode('latin-1'), 0, 1, 'L')
     pdf.ln(10)
     pdf.line(20, pdf.get_y(), 190, pdf.get_y())
     pdf.ln(10)
@@ -94,20 +128,24 @@ async def download_itinerary(req: dict):
     # Body
     pdf.set_font("Arial", size=11)
     for line in text.split('\n'):
+        # Clean line of non-latin-1 characters to prevent crashes
+        clean_line = line.encode('latin-1', 'ignore').decode('latin-1')
         if line.startswith('###'):
             pdf.ln(5)
             pdf.set_font("Arial", 'B', 14)
-            pdf.multi_cell(0, 10, line.replace('###', '').strip().encode('latin-1', 'ignore').decode('latin-1'))
+            pdf.multi_cell(0, 10, clean_line.replace('###', '').strip())
             pdf.set_font("Arial", size=11)
         elif line.startswith('---'):
             pdf.ln(5)
             pdf.line(20, pdf.get_y(), 190, pdf.get_y())
             pdf.ln(5)
         else:
-            pdf.multi_cell(0, 8, line.encode('latin-1', 'ignore').decode('latin-1'))
+            pdf.multi_cell(0, 8, clean_line)
         
-    pdf_out = pdf.output(dest='S').encode('latin-1')
-    return {"pdf": base64.b64encode(pdf_out).decode('utf-8')}
+    pdf_bytes = pdf.output(dest='S')
+    if isinstance(pdf_bytes, str):
+        pdf_bytes = pdf_bytes.encode('latin-1', 'ignore')
+    return {"pdf": base64.b64encode(pdf_bytes).decode('utf-8')}
 
 if __name__ == "__main__":
     import uvicorn

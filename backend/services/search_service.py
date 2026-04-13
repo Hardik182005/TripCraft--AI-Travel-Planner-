@@ -24,6 +24,21 @@ class SearchService:
         except Exception:
             return ""
 
+    def get_destination_info(self, destination):
+        # Fetches weather and currency snippets
+        url = f"{self.base_url}/search"
+        query = f"current weather and currency in {destination}"
+        payload = json.dumps({"q": query, "num": 5})
+        headers = {'X-API-KEY': self.api_key, 'Content-Type': 'application/json'}
+        try:
+            response = requests.post(url, headers=headers, data=payload)
+            if response.status_code == 200:
+                return response.json().get('answerBox', {}).get('snippet', '') or \
+                       response.json().get('organic', [{}])[0].get('snippet', 'Data unavailable')
+            return "General destination info unavailable."
+        except Exception:
+            return "Error fetching destination pulse."
+
     def _get_image(self, dest_name):
         url = f"{self.base_url}/images"
         payload = json.dumps({"q": f"{dest_name} landscape luxury travel photography", "num": 10})

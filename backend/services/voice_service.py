@@ -8,7 +8,7 @@ class VoiceService:
         self.base_url = "https://api.elevenlabs.io/v1"
 
     def tts(self, text):
-        url = f"{self.base_url}/text-to-speech/pNInz6obpgH9GO04R66R" # Adam voice
+        url = f"{self.base_url}/text-to-speech/JBFqnCBsd6RMkjVDRZzb" # George voice
         headers = {
             "Accept": "audio/mpeg",
             "Content-Type": "application/json",
@@ -16,7 +16,7 @@ class VoiceService:
         }
         data = {
             "text": text,
-            "model_id": "eleven_monolingual_v1",
+            "model_id": "eleven_multilingual_v2",
             "voice_settings": {"stability": 0.5, "similarity_boost": 0.5}
         }
         try:
