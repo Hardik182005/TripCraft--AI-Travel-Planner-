@@ -1,0 +1,13 @@
+streamlit
+google-generativeai
+requests
+elevenlabs
+pydub
+python-dotenv
+pandas
+fpdf
+plotly
+streamlit-mic-recorder
+langchain
+langchain-google-genai
+langchain-community
