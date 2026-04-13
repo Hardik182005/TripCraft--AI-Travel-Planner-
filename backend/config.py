@@ -1,4 +1,10 @@
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Configuration for API Keys
-GEMINI_API_KEY = "AIzaSyDqHt09DHWbnp2ttFRbUYRWlW4h2KUwrmI"
-ELEVENLABS_API_KEY = "fafb04c23c4f00d72498df079c218c2486084e2771f69fd2a4352cd4091d768f"
-SERPER_API_KEY = "443262f148ff243236a9f0da2b4929d93af3092ccb4449d39f98e4046e0eab32"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+SERPER_API_KEY = os.getenv("SERPER_API_KEY")
