@@ -68,6 +68,25 @@ streamlit run app.py
 
 ---
 
+## ☁️ **GCP Cloud Run Deployment (Professional)**
+
+To deploy this on **Google Cloud Platform** for a production-grade URL:
+
+1. **Build the Image**:
+   ```bash
+   gcloud builds submit --tag gcr.io/[PROJECT-ID]/tripcraft
+   ```
+
+2. **Deploy to Cloud Run**:
+   ```bash
+   gcloud run deploy tripcraft --image gcr.io/[PROJECT-ID]/tripcraft --platform managed --allow-unauthenticated
+   ```
+
+3. **Set Environment Variables**: Use the Google Cloud Console to add your `GEMINI_API_KEY`, `SERPER_API_KEY`, and `ELEVENLABS_API_KEY`.
+
+
+---
+
 ## 📁 **Architecture**
 
 ```text

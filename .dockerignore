@@ -1,0 +1,9 @@
+.git
+.env
+__pycache__
+*.pyc
+.streamlit
+itinerary.pdf
+README.MD
+Dockerfile
+.dockerignore

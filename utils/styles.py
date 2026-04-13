@@ -3,94 +3,110 @@ import streamlit as st
 def apply_styles():
     st.markdown("""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
         
+        /* Hide Streamlit elements */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        .stAppDeployButton {display:none;}
+        [data-testid="stStatusWidget"] {display: none;}
+
         html, body, [class*="css"] {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Outfit', sans-serif;
+            background-color: #050505 !important;
+            color: #ffffff !important;
         }
 
-        .main {
-            background-color: #0f172a;
-            color: #f8fafc;
+        .stApp {
+            background-color: #050505 !important;
         }
 
         .stButton>button {
-            border-radius: 12px;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
+            border-radius: 50px;
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+            color: white !important;
             border: none;
-            padding: 10px 24px;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 12px 32px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
         }
 
         .stButton>button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 20px 30px -10px rgba(168, 85, 247, 0.6);
+            color: white !important;
+            border: none;
         }
 
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
 
         .chat-user {
-            background: #1e293b;
-            padding: 15px;
-            border-radius: 15px 15px 0 15px;
-            margin-bottom: 15px;
-            border-left: 4px solid #3b82f6;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 20px;
+            border-radius: 20px 20px 4px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
         }
 
         .chat-assistant {
-            background: #334155;
-            padding: 15px;
-            border-radius: 15px 15px 15px 0;
-            margin-bottom: 15px;
-            border-left: 4px solid #10b981;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 20px;
+            border-radius: 20px 20px 20px 4px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #ffffff;
+            box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.05);
         }
 
         .trending-card {
-            border-radius: 20px;
+            border-radius: 24px;
             overflow: hidden;
-            background: #1e293b;
-            transition: all 0.3s ease;
+            background: #111111;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.03);
+            position: relative;
         }
 
         .trending-card:hover {
-            transform: scale(1.02);
-            border-color: #3b82f6;
+            transform: translateY(-10px);
+            border-color: #6366f1;
+            box-shadow: 0 15px 45px -10px rgba(0, 0, 0, 0.8);
         }
 
-        h1, h2, h3 {
-            color: #f8fafc !important;
+        h1, h2, h3, h4, span, p {
+            color: #ffffff !important;
         }
         
-        /* Sidebar styling */
-        .sidebar .sidebar-content {
-            background-color: #1e293b;
+        .stTextInput>div>div>input {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            color: white !important;
+            padding: 12px !important;
         }
-        
-        /* Status animation */
-        @keyframes shimmer {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
-        .status-pulse {
-            animation: shimmer 2s infinite;
-            color: #60a5fa;
-            font-weight: 500;
+
+        /* Sidebar enhancement */
+        [data-testid="stSidebar"] {
+            background-color: #0a0a0a !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
         </style>
+    """,StartLine:5,TargetContent:
     """, unsafe_allow_html=True)
 
 def header():
