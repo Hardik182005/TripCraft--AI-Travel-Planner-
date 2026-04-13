@@ -1,116 +1,96 @@
-# <p align="center">✈️ TripCraft: AI-Powered Travel Architect</p>
+# ✈️ TripCraft: AI-Powered Travel Architect
 
-<p align="center">
-  <img src="https://img.shields.io/github/license/Hardik182005/TripCraft--AI-Travel-Planner-?style=for-the-badge&color=blue" alt="License">
-  <img src="https://img.shields.io/github/stars/Hardik182005/TripCraft--AI-Travel-Planner-?style=for-the-badge&color=gold" alt="Stars">
-  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white" alt="Streamlit">
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-</p>
+TripCraft is a production-level AI travel assistant that generates personalized itineraries using a multi-agent orchestration of professional travel intelligence. It combines real-time data from across the web with a premium, minimalist UX.
 
 ---
 
-### 🌟 **Live Demo**: [Launch TripCraft AI](https://tripcraft-ai.streamlit.app/)
+## 🧠 Core Intelligence
 
-**TripCraft** is a premium, production-level AI travel assistant designed to bridge the gap between imagination and exploration. It leverages cutting-edge LLMs and real-time data to craft hyper-personalized itineraries, complete with voice interaction and professional exports.
-
----
-
-## 🚀 **Key Features**
-
-| Feature | Description |
-| :--- | :--- |
-| **🧠 Multi-Agent Logic** | Orchestrated by **Gemini 1.5 Pro** for deep research and spatial planning. |
-| **🌐 Dynamic Web Intelligence** | Real-time integrations with **Serper API** for current prices and trending spots. |
-| **🔊 Natural Voice Suite** | High-fidelity TTS via **ElevenLabs** and localized STT for hands-free planning. |
-| **💎 Glassmorphism UI** | A high-end, responsive interface with translucent layers and fluid animations. |
-| **📄 Professional Exports** | One-click generation of beautifully formatted **PDF itineraries**. |
-| **🗺️ Spatial Insights** | Integrated map visualizations for intuitive geographic understanding. |
+TripCraft leverages a state-of-the-art AI stack to deliver breathtaking journeys:
+- **Gemini 2.5 Flash**: The elite LLM engine behind the Atlas AI Assistant.
+- **Serper API**: Real-time discovery of global events and travel data.
+- **Multi-Source Discovery**: Trends curated from **YouTube** vlogs, **Reddit** discussions, and **Google Search**.
+- **ElevenLabs API**: High-fidelity AI voice synthesis for a true concierge experience.
 
 ---
 
-## 🛠️ **Tech Stack**
+## ✨ Features
 
-<p align="left">
-  <img src="https://img.shields.io/badge/Google%20Gemini-4285F4?style=for-the-badge&logo=google-gemini&logoColor=white" />
-  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" />
-  <img src="https://img.shields.io/badge/ElevenLabs-000000?style=for-the-badge&logo=elevenlabs&logoColor=white" />
-  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" />
-  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
-</p>
+- **Multi-Agent Travel Planning**: Atlas orchestrates search, design, and insight gathering in real-time.
+- **🌍 Real-Time Trending Destinations**: Dynamic discovery sourced from social pulses (YouTube + Reddit + Google).
+- **🎤 Voice Assistant**: Integrated STT (Speech-to-Text) and TTS (Text-to-Speech) for immersive planning.
+- **📄 Bespoke PDF Export**: Download your curated itinerary as a professionally formatted PDF.
+- **🎨 Premium UI**: Exquisite glassmorphism design with Framer Motion animations and "Playfair Display" typography.
+- **🧳 Custom Preferences**: Tailor trips by budget, duration, travel mode, and activity levels.
+- **⚡ 1-Click Planning**: Instantly move from a trending destination card to a full AI-generated itinerary.
 
 ---
 
-## 📥 **Installation & Setup**
+## 🛠️ Tech Stack
 
-### 1️⃣ Clone the Repository
-```bash
-git clone https://github.com/Hardik182005/TripCraft--AI-Travel-Planner-.git
-cd TripCraft--AI-Travel-Planner-
-```
+### Frontend
+- **React (Vite)**
+- **Tailwind CSS v4**
+- **Framer Motion** (Animations)
+- **Lucide React** (Iconography)
 
-### 2️⃣ Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+### Backend
+- **FastAPI** (Python)
+- **Generative AI** (Gemini 2.5 Flash)
+- **FPDF** (Document Generation)
 
-### 3️⃣ Configure Environment
-Create a `.env` file in the root directory:
+---
+
+## 🚀 How to Run
+
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r ../requirements.txt
+   ```
+3. Run the server:
+   ```bash
+   python main.py
+   ```
+
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Launch the portal:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 🔑 Environment Variables
+
+Create a `.env` file in the root or backend directory using `.env.example` as a template:
+
 ```env
-GEMINI_API_KEY=your_key_here
-SERPER_API_KEY=your_key_here
-ELEVENLABS_API_KEY=your_key_here
-```
-
-### 4️⃣ Launch Application
-```bash
-streamlit run app.py
+GEMINI_API_KEY=your_key
+SERPER_API_KEY=your_key
+ELEVENLABS_API_KEY=your_key
 ```
 
 ---
 
-## ☁️ **GCP Cloud Run Deployment (Professional)**
+## 📸 Interface Preview
 
-To deploy this on **Google Cloud Platform** for a production-grade URL:
-
-1. **Build the Image**:
-   ```bash
-   gcloud builds submit --tag gcr.io/[PROJECT-ID]/tripcraft
-   ```
-
-2. **Deploy to Cloud Run**:
-   ```bash
-   gcloud run deploy tripcraft --image gcr.io/[PROJECT-ID]/tripcraft --platform managed --allow-unauthenticated
-   ```
-
-3. **Set Environment Variables**: Use the Google Cloud Console to add your `GEMINI_API_KEY`, `SERPER_API_KEY`, and `ELEVENLABS_API_KEY`.
-
+*(Add your high-resolution screenshots here to showcase the glassmorphism UI)*
 
 ---
 
-## 📁 **Architecture**
+## 📄 License
 
-```text
-├── agents/             # Intelligent LLM Agent Logic
-├── tools/              # Search, PDF, and Mapping Utilities
-├── voice/              # ElevenLabs & Gemini Voice Services
-├── ui/                 # Custom CSS & Interface Components
-├── utils/              # Helper functions & Styling
-└── app.py              # Main Application Entry
-```
-
----
-
-## 🤝 **Contributing**
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-<p align="center">
-  Developed with ❤️ for the Global Explorer.
-</p>
+This project is licensed under the MIT License - see the LICENSE file for details.
