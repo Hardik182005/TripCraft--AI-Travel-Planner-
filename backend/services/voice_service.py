@@ -7,8 +7,11 @@ class VoiceService:
         self.api_key = ELEVENLABS_API_KEY
         self.base_url = "https://api.elevenlabs.io/v1"
 
-    def tts(self, text):
-        url = f"{self.base_url}/text-to-speech/JBFqnCBsd6RMkjVDRZzb" # George voice
+    def tts(self, text, voice_id="JBFqnCBsd6RMkjVDRZzb"):
+        # Default is 'George' (Elite Concierge)
+        # Other options: 'EXAVITQu4vr4xnSDxMaL' (Bella - Soft Elegance)
+        # 'pMs7uSoxq6IG76ZMo7vW' (Alfie - British Gentleman)
+        url = f"{self.base_url}/text-to-speech/{voice_id}"
         headers = {
             "Accept": "audio/mpeg",
             "Content-Type": "application/json",

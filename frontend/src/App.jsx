@@ -4,11 +4,16 @@ import Trending from './sections/Trending'
 import Chat from './sections/Chat'
 import Preferences from './sections/Preferences'
 import PreferencesScreen from './sections/PreferencesScreen'
+import Sidebar from './sections/Sidebar'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Menu } from 'lucide-react'
 
 function App() {
   const [view, setView] = useState('landing') // 'landing' | 'preferences' | 'active'
   const [initialPrompt, setInitialPrompt] = useState('')
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [theme, setTheme] = useState('dark')
+  
   const [preferences, setPreferences] = useState({
     destination: '',
     budget: 'Standard',
@@ -20,8 +25,17 @@ function App() {
     useCustomDuration: false,
     food: 'Local',
     intensity: 'Moderate',
-    interest: 'Culture'
+    interest: 'Culture',
+    personality: 'Professional',
+    voice_id: 'JBFqnCBsd6RMkjVDRZzb',
+    dietary: 'non-veg'
   })
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    document.documentElement.classList.toggle('light-mode');
+  };
 
   const handleStartPlanning = () => {
     setView('preferences');
@@ -67,20 +81,24 @@ function App() {
               TripCraft <span className="text-white/20 font-light">AI</span>
             </motion.div>
             
-            <nav className="hidden lg:flex gap-16 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">
-              <span className="hover:text-white transition-all cursor-pointer">Philosophy</span>
-              <span className="hover:text-white transition-all cursor-pointer" onClick={() => { setView('landing'); setTimeout(() => document.getElementById('trending')?.scrollIntoView({behavior: 'smooth'}), 100); }}>Trending</span>
-              <span className="hover:text-white transition-all cursor-pointer" onClick={() => setView('active')}>Atlas AI</span>
-            </nav>
+            <div className="flex items-center gap-6">
+              <nav className="hidden lg:flex gap-16 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">
+                <span className="hover:text-white transition-all cursor-pointer">Philosophy</span>
+                <span className="hover:text-white transition-all cursor-pointer" onClick={() => { setView('landing'); setTimeout(() => document.getElementById('trending')?.scrollIntoView({behavior: 'smooth'}), 100); }}>Trending</span>
+                <span className="hover:text-white transition-all cursor-pointer" onClick={() => setView('active')}>Atlas AI</span>
+              </nav>
 
-            <motion.button 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="px-8 py-3 rounded-xl border border-white/10 glass-card text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-dark transition-all"
-              onClick={handleStartPlanning}
-            >
-              Start Planning
-            </motion.button>
+              <motion.button 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu size={20} />
+              </motion.button>
+            </div>
           </div>
         </header>
 
@@ -149,6 +167,16 @@ function App() {
               TripCraft AI © 2026
             </p>
         </footer>
+
+        {/* Command Center Sidebar */}
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onClose={() => setIsSidebarOpen(false)}
+          preferences={preferences}
+          setPreferences={setPreferences}
+          theme={theme}
+          toggleTheme={toggleTheme}
+        />
       </div>
     </div>
   )

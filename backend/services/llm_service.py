@@ -4,16 +4,17 @@ from backend.config import GEMINI_API_KEY, GROQ_API_KEY
 
 class LLMService:
     def __init__(self):
-        # Initialize Gemini with a quick Health Check
+        # Initialize Gemini 2.0 Flash with a quick Health Check
         try:
             genai.configure(api_key=GEMINI_API_KEY)
-            self.model = genai.GenerativeModel('gemini-flash-latest')
+            self.model = genai.GenerativeModel('gemini-2.0-flash')
             # Fast health check to avoid hangs later
             self.model.generate_content("Health check", generation_config={"max_output_tokens": 1})
-            print("Gemini initialized and verified.")
+            print("Gemini 2.0 Flash initialized and verified.")
         except Exception as e:
-            print(f"Gemini verification failed (likely quota): {e}")
-            self.model = None
+            print(f"Gemini verification failed (likely quota or model name): {e}")
+            self.model = genai.GenerativeModel('gemini-1.5-flash') # Fallback to 1.5
+            print("Falling back to Gemini 1.5 Flash.")
 
         # Initialize Groq as Fallback
         try:
@@ -23,6 +24,25 @@ class LLMService:
         except Exception as e:
             print(f"Failed to initialize Groq: {e}")
             self.groq_client = None
+
+    def identify_location_from_image(self, base64_image):
+        """Uses Gemini Vision to identify a location from a photo."""
+        if not self.model: return None
+        import base64
+        import io
+        from PIL import Image
+
+        try:
+            # Prepare image for Gemini
+            img_data = base64.b64decode(base64_image)
+            img = Image.open(io.BytesIO(img_data))
+            
+            prompt = "Precisely identify this travel location, hotel, or landmark. Return only the name and city/country. If it's a general scene, describe it as a travel destination."
+            response = self.model.generate_content([prompt, img])
+            return response.text.strip()
+        except Exception as e:
+            print(f"Vision Error: {e}")
+            return None
 
     def _generate_with_groq(self, prompt, context=""):
         if not self.groq_client: return None
@@ -53,8 +73,25 @@ class LLMService:
         if preferences.get('useCustomDuration') and preferences.get('customDuration'):
             duration = preferences.get('customDuration')
 
+        personality_guide = {
+            "Minimalist": "Be extremely brief, high-end, and efficient. Use bullet points and focus on exclusivity.",
+            "Storyteller": "Be descriptive, poetic, and immersive. Paint a vivid picture of the culture and smells of the destination.",
+            "Professional": "Be ultra-polished, data-driven, and formal like a high-end private concierge."
+        }.get(preferences.get('personality', 'Professional'), "Be an elite travel architect.")
+
+        # EXPERT DEBATE: Simulated internal reasoning
+        expert_debate = f"""
+        - (Culinary Critic): "For {destination}, I'm prioritizing Michelin-level {preferences.get('food', 'local')} spots that match a {preferences.get('budget', 'Luxury')} lifestyle."
+        - (Adventure Lead): "Focusing on {preferences.get('intensity', 'Moderate')} activities with high {preferences.get('interest', 'Culture')} value."
+        - (Logistics Architect): "Optimizing for {preferences.get('group', 'Solo')} safety and seamless {preferences.get('transport', 'Flight')} connectivity."
+        """
+
         prompt = f"""
-        You are 'Atlas', an elite world-class travel agent. Your mission is to design a breathtaking, high-end travel itinerary for {destination}.
+        You are 'Atlas', {personality_guide}
+        Your mission is to design a breathtaking, high-end travel itinerary for {destination}.
+        
+        INTERNAL EXPERT DEBATE (Insights):
+        {expert_debate}
         
         CONTEXT FROM CONVERSATION:
         {context}
@@ -64,19 +101,21 @@ class LLMService:
         - Group Type: {preferences.get('group', 'Solo')}
         - Stay Type: {preferences.get('stay', 'Hotel')}
         - Duration: {duration} days
-        - Food Preference: {preferences.get('food', 'Local')}
-        - Activity Intensity: {preferences.get('intensity', 'Moderate')}
-        - Primary Interest: {preferences.get('interest', 'Culture')}
+         - Primary Interest: {preferences.get('interest', 'Culture')}
+         - HERITAGE DIETARY ARCHITECT: {preferences.get('dietary', 'non-veg')} (IMPORTANT: If Jain, strictly exclude onions, garlic, and root vegetables. If Vegetarian, strictly exclude meat/fish. If Eggitarian, allow vegetables and eggs only.)
         
-        RESEARCH DATA & LIVE PULSE (IMPORTANT):
+        RESEARCH DATA & LIVE PULSE:
         {search_results or "Real-time research temporarily unavailable."}
         
         REQUIREMENTS:
         1. Professional Tone: Use elegant, sophisticated language.
-        2. INTEGRATE LIVE PULSE: You MUST use the weather and currency info from the 'LIVE PULSE' section above to give real-time, ground-level advice.
+        2. INTEGRATE LIVE PULSE: You MUST use the weather, currency, safety, and crowd levels from the 'RESEARCH DATA' section.
         3. Daily Breakdown: Morning, Afternoon, and Evening activities.
-        4. Real Recommendations: Mention specific hotels/restaurants from the research.
-        5. Format: Clean Markdown with ### Day X and **Venue Name**. STRICTLY NO Emojis.
+        4. OUTFIT ARCHITECT: Include a '### 🧥 Bespoke Dress Code' section for each day (e.g., 'Layered lightweight cashmere for a 16°C afternoon').
+        5. Smart AI Packing Architect: At the end, add '### 🎒 Bespoke Packing Architect' based on the weather.
+        6. AI Budget Realism Explorer: At the end, add '### 💰 Budget Realism Explorer' breakdown.
+        7. Instagrammable Moments: Sprinkle the 'AESTHETIC SPOTS' throughout.
+        8. Format: Clean Markdown with ### Day X. NO Emojis (except in the section headers I specified).
         """
         
         # Primary Attempt: Gemini

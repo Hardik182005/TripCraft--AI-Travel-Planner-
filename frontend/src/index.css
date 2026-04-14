@@ -13,6 +13,32 @@
   --font-body: "Inter", sans-serif;
 }
 
+:root.light-mode {
+  --color-dark: #F5F5F7;
+  --color-card: #FFFFFF;
+}
+
+.light-mode body {
+  background-color: #F5F5F7;
+  color: #1D1D1F;
+}
+
+.light-mode .text-white { color: #1D1D1F; }
+.light-mode .text-white\/20 { color: rgba(0,0,0,0.1); }
+.light-mode .text-white\/30 { color: rgba(0,0,0,0.2); }
+.light-mode .text-white\/40 { color: rgba(0,0,0,0.3); }
+.light-mode .text-white\/60 { color: rgba(0,0,0,0.4); }
+.light-mode .bg-white\/5 { background-color: rgba(0,0,0,0.03); }
+.light-mode .bg-white\/10 { background-color: rgba(0,0,0,0.05); }
+.light-mode .border-white\/5 { border-color: rgba(0,0,0,0.05); }
+.light-mode .border-white\/10 { border-color: rgba(0,0,0,0.1); }
+.light-mode .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-blur: 40px; border-color: rgba(0,0,0,0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
+.light-mode .prose-elite { color: #333; }
+.light-mode .prose-elite h3, .light-mode .prose-elite strong { color: #000; }
+.light-mode header { background: rgba(245, 245, 247, 0.8); }
+.light-mode footer { background: #E5E5E7; }
+.light-mode .bg-dark { background-color: #F5F5F7; }
+
 @layer base {
   body {
     @apply bg-dark text-white font-body antialiased;

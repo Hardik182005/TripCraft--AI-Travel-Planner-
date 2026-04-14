@@ -9,8 +9,8 @@ export const getTrending = async () => {
   return response.data;
 };
 
-export const chatWithAI = async (message, preferences, history) => {
-  const response = await api.post('/chat', { message, preferences, history });
+export const chatWithAI = async (message, preferences, history, imageData = null) => {
+  const response = await api.post('/chat', { message, preferences, history, image_data: imageData });
   return response.data;
 };
 
@@ -19,8 +19,8 @@ export const stt = async (audioB64) => {
   return response.data;
 };
 
-export const tts = async (text) => {
-  const response = await api.post('/voice/tts', { text });
+export const tts = async (text, voiceId) => {
+  const response = await api.post('/voice/tts', { text, voice_id: voiceId });
   return response.data;
 };
 

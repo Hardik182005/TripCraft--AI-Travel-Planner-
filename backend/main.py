@@ -27,6 +27,7 @@ class ChatRequest(BaseModel):
     message: str
     preferences: dict
     history: Optional[List[dict]] = []
+    image_data: Optional[str] = None # Base64 Vision input
 
 class VoiceRequest(BaseModel):
     audio: str # Base64 encoded
@@ -38,6 +39,13 @@ async def get_trending_destinations():
 @app.post("/chat")
 async def chat_with_agent(req: ChatRequest):
     try:
+        # Vision Intelligence: Identify location/photo
+        vision_dest = None
+        if req.image_data:
+            vision_dest = llm.identify_location_from_image(req.image_data)
+            if vision_dest:
+                print(f"Vision Identified Location: {vision_dest}")
+
         # Pre-process message (Clean voice artifacts like '[noise] H-hi' -> 'hi')
         import re
         # Remove anything in brackets [noise] or parentheses (ubersprechen)
@@ -45,45 +53,94 @@ async def chat_with_agent(req: ChatRequest):
         # Remove punctuation like H-hi -> hi
         clean_msg = re.sub(r'[^\w\s]', '', clean_msg).lower()
         
-        # Generate response via LLM - Smart Routing
-        is_greeting = any(greet in clean_msg for greet in ['hi', 'hello', 'hey', 'greetings', 'yo']) and len(clean_msg.split()) < 4
+        is_chat = any(greet in clean_msg for greet in ['hi', 'hello', 'hey', 'how are you', 'what is', 'who are', 'thank']) and len(clean_msg.split()) < 5
         
-        if is_greeting:
-            response = llm.chat(req.message, req.history) # Use original message for context but handled as chat
-            return {"response": response, "image": None, "pulse": None, "destination": None}
+        if is_chat:
+            response = llm.chat(req.message, req.history)
+            return {
+                "response": response, 
+                "image": None, 
+                "pulse": None, 
+                "video": None,
+                "crowd": None,
+                "phrases": None,
+                "heatmap": None,
+                "destination": None,
+                "safety": None,
+                "events": None,
+                "aesthetic": None
+            }
         else:
             # Smart Destination Extraction for Pulse & Maps
             target_dest = req.message
-            # Simple regex to find destination after "to " or "in "
-            dest_match = re.search(r'(?:to|in|at|visit|about|planning)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)', req.message)
-            if dest_match:
-                target_dest = dest_match.group(1)
-            elif len(req.message.split()) < 4:
-                target_dest = clean_msg # Use the single word as destination
+            if vision_dest:
+                 target_dest = vision_dest # Use the vision-identified destination
+            else:
+                 # Simple regex to find destination after "to " or "in "
+                 dest_match = re.search(r'(?:to|in|at|visit|about|planning)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)', req.message)
+                 if dest_match:
+                     target_dest = dest_match.group(1)
+                 elif len(req.message.split()) < 4:
+                     target_dest = clean_msg # Use the single word as destination
             
-            # Only search for context if it's a real query
             search_results = ""
             dest_image = None
-            dest_pulse = None
+            video_url = None
+            crowd_status = "Bespoke Crowd Optimization Active"
+            local_phrases = []
+            heatmap_data = None
+            res_data = "Weather and Currency pulse active."
+            safety_info = "Atlas Safety monitoring active."
+            events_info = "Local discovery pulse active."
+            aesthetic_info = "Photography hotspots identified."
+            
             try:
                 # 1. Image Discovery
-                dest_image = search._get_image(target_dest)
-                # 2. Live Pulse (Weather/Currency)
-                dest_pulse = search.get_destination_info(target_dest)
+                dest_image = search.get_image(target_dest)
+                video_url = search.get_destination_video(target_dest)
+                crowd_status = search.get_crowd_sentiment(target_dest)
+                local_phrases = search.get_local_phrases(target_dest)
+                heatmap_data = search.get_safety_heatmap_data(target_dest)
+
+                # Build detailed research context for the LLM
+                res_data = search.get_destination_info(target_dest)
+                safety_info = search.get_safety_info(target_dest)
+                events_info = search.get_local_events(target_dest)
+                aesthetic_info = search.get_aesthetic_spots(target_dest)
                 
                 search_query = f"{target_dest} travel tips best places {req.preferences.get('interest', 'culture')}"
                 search_results = search.search(search_query)
-                # Inject pulse into search results for LLM context
-                search_results = f"LIVE PULSE FOR {target_dest}: {dest_pulse}\n\n{search_results}"
+                
+                # Composite Research Context
+                research_context = [
+                    f"LIVE PULSE: {res_data}",
+                    f"SAFETY ADVISORY: {safety_info}",
+                    f"LOCAL EVENTS: {events_info}",
+                    f"AESTHETIC SPOTS: {aesthetic_info}",
+                    f"CROWD PULSE: {crowd_status}",
+                    f"GENERAL RESEARCH: {search_results}"
+                ]
+                final_search_data = "\n\n".join(research_context)
             except Exception as search_err:
                 print(f"Non-critical Search Error: {search_err}")
+                final_search_data = "Real-time research temporarily unavailable."
                 
-            response = llm.generate_itinerary(req.message, req.preferences, search_results, req.history)
+            itinerary = llm.generate_itinerary(req.message, req.preferences, final_search_data, req.history)
             return {
-                "response": response, 
-                "image": dest_image, 
-                "pulse": dest_pulse,
-                "destination": target_dest
+                "response": itinerary,
+                "image": dest_image,
+                "pulse": res_data,
+                "video": video_url,
+                "crowd": crowd_status,
+                "phrases": local_phrases,
+                "heatmap": heatmap_data,
+                "destination": target_dest,
+                "safety": safety_info,
+                "events": events_info,
+                "aesthetic": aesthetic_info,
+                "shield": search.get_safety_shield_data(target_dest),
+                "currency": search.get_currency_rate(target_dest),
+                "moodboard": search.get_moodboard(target_dest)
             }
     except Exception as e:
         print(f"Chat API Error: {e}")
@@ -98,7 +155,7 @@ async def speech_to_text(req: VoiceRequest):
 
 @app.post("/voice/tts")
 async def text_to_speech(req: dict):
-    audio_b64 = voice.tts(req.get("text", ""))
+    audio_b64 = voice.tts(req.get("text", ""), req.get("voice_id", "JBFqnCBsd6RMkjVDRZzb"))
     if audio_b64:
         return {"audio": audio_b64}
     raise HTTPException(status_code=400, detail="Could not generate audio")
