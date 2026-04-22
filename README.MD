@@ -16,7 +16,7 @@ TripCraft is an elite, production-grade AI travel concierge that architect's per
 
 ## 🧠 Core Intelligence
 TripCraft leverages a state-of-the-art AI stack:
-- **Gemini 1.5 Flash**: The primary elite LLM engine.
+- **Gemini 2.5 Flash**: The primary elite LLM engine.
 - **Groq (Llama 3.3 70B)**: Ultra-fast fallback engine for high availability.
 - **Serper API**: Real-time discovery of global events and travel data.
 - **ElevenLabs API**: High-fidelity AI voice synthesis (Multilingual v2).
